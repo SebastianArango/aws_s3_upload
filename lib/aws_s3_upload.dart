@@ -75,8 +75,9 @@ class AwsS3 {
 
     final uri = Uri.parse(endpoint);
     final req = http.MultipartRequest("POST", uri);
-    final multipartFile = http.MultipartFile('file', stream, length,
-        filename: path.basename(file.path));
+    req.files.add(await http.MultipartFile.fromPath('file', file.path));
+    /*final multipartFile = http.MultipartFile('file', stream, length,
+        filename: path.basename(file.path));*/
 
     // Convert metadata to AWS-compliant params before generating the policy.
     final metadataParams = _convertMetadataToParams(metadata);
@@ -86,7 +87,7 @@ class AwsS3 {
       uploadKey,
       bucket,
       accessKey,
-      15,
+      2,
       length,
       acl,
       region: region,
@@ -97,7 +98,7 @@ class AwsS3 {
         SigV4.calculateSigningKey(secretKey, policy.datetime, region, 's3');
     final signature = SigV4.calculateSignature(signingKey, policy.encode());
 
-    req.files.add(multipartFile);
+    //req.files.add(multipartFile);
     req.fields['key'] = policy.key;
     req.fields['acl'] = aclToString(acl);
     req.fields['X-Amz-Credential'] = policy.credential;
@@ -115,7 +116,10 @@ class AwsS3 {
     try {
       final res = await req.send();
 
-      if (res.statusCode == 204) return '$endpoint/$uploadKey';
+      if (res.statusCode == 204) {
+        print(res);
+        return '$endpoint/$uploadKey';
+      }
     } catch (e) {
       print('Failed to upload to AWS, with exception:');
       print(e);
