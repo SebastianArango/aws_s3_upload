@@ -75,9 +75,8 @@ class AwsS3 {
 
     final uri = Uri.parse(endpoint);
     final req = http.MultipartRequest("POST", uri);
-    req.files.add(await http.MultipartFile.fromPath('file', file.path));
-    /*final multipartFile = http.MultipartFile('file', stream, length,
-        filename: path.basename(file.path));*/
+    final multipartFile = http.MultipartFile('file', stream, length,
+        filename: path.basename(file.path));
 
     // Convert metadata to AWS-compliant params before generating the policy.
     final metadataParams = _convertMetadataToParams(metadata);
@@ -98,7 +97,7 @@ class AwsS3 {
         SigV4.calculateSigningKey(secretKey, policy.datetime, region, 's3');
     final signature = SigV4.calculateSignature(signingKey, policy.encode());
 
-    //req.files.add(multipartFile);
+    req.files.add(multipartFile);
     req.fields['key'] = policy.key;
     req.fields['acl'] = aclToString(acl);
     req.fields['X-Amz-Credential'] = policy.credential;
